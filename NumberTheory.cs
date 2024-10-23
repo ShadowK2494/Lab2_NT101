@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Numerics;
-using System.U
-
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+using System.Diagnostics.Eventing.Reader;
 namespace Lab3
 {
     public partial class NumberTheory : Form
@@ -115,21 +115,6 @@ namespace Lab3
             return number;
         }
 
-        private void btn8bitprime_CheckedChanged(object sender, EventArgs e)
-        {
-            tbText.Text = GeneratePrime(8).ToString();
-        }
-
-        private void btn16bitprime_CheckedChanged(object sender, EventArgs e)
-        {
-            tbText.Text = GeneratePrime(16).ToString();
-        }
-
-        private void btn64bitprime_CheckedChanged(object sender, EventArgs e)
-        {
-            tbText.Text = GeneratePrime(64).ToString();
-        }
-
         // Hàm tính căn bậc hai của BigInteger
         static BigInteger Sqrt(BigInteger n)
         {
@@ -164,29 +149,84 @@ namespace Lab3
             return true;
         }
 
-        private void btnMersenne_CheckedChanged(object sender, EventArgs e)
+        // Hàm tách hai số từ chuỗi đầu vào
+        static BigInteger[] ExtractTwoNumbers(string input)
+        {
+            // Thay thế các dấu phân cách (, ; hoặc dấu cách) bằng dấu cách
+            string cleanedInput = input.Replace(",", " ").Replace(";", " ");
+
+            // Tách chuỗi dựa trên dấu cách, loại bỏ các chuỗi rỗng
+            string[] parts = cleanedInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Kiểm tra nếu có đúng 2 phần tử và cả hai đều là số hợp lệ
+            if (parts.Length == 2 && BigInteger.TryParse(parts[0], out BigInteger num1) && BigInteger.TryParse(parts[1], out BigInteger num2))
+            {
+                return new[] { num1, num2 };
+            }
+
+            // Nếu không hợp lệ, trả về null
+            return null;
+        }
+
+        // Hàm tìm ước chung lớn nhất (GCD) của hai số BigInteger
+        static BigInteger FindGCD(BigInteger a, BigInteger b)
+        {
+            // Sử dụng thuật toán Euclid
+            while (b != 0)
+            {
+                BigInteger remainder = a % b;
+                a = b;
+                b = remainder;
+            }
+            return BigInteger.Abs(a); // Trả về giá trị tuyệt đối của GCD
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            tbInput.Text = null;
+            tbText.Text = null;
+        }
+
+        private void NumberTheory_Load(object sender, EventArgs e)
+        {
+            tbInput.Text = null;
+            tbText.Text = null;
+        }
+
+        private void btn1_1_8_Click(object sender, EventArgs e)
+        {
+            tbText.Text = GeneratePrime(8).ToString();
+        }
+
+        private void btn1_1_16_Click(object sender, EventArgs e)
+        {
+            tbText.Text = GeneratePrime(16).ToString();
+        }
+
+        private void btn1_1_64_Click(object sender, EventArgs e)
+        {
+            tbText.Text = GeneratePrime(64).ToString();
+        }
+
+        private void btn1_2_Click(object sender, EventArgs e)
         {
             // Danh sách 10 số nguyên tố Mersenne đầu tiên
-            List<UInt128>
             List<BigInteger> mersennePrimes = new List<BigInteger>
             {
-                //new BigInteger(3),
-                //new BigInteger(7),
-                //new BigInteger(31),
-                //new BigInteger(127),
-                //new BigInteger(8191),
-                //new BigInteger(131071),
-                //new BigInteger(524287),
-                //new BigInteger(2147483647),
-                new BigInteger(2305843009213693951),
+                new BigInteger(3),
+                new BigInteger(7),
+                new BigInteger(31),
+                new BigInteger(127),
+                new BigInteger(8191),
+                new BigInteger(131071),
+                new BigInteger(524287),
+                new BigInteger(2147483647),
+                //new BigInteger(2305843009213693951),
                 //BigInteger.Parse("2305843009213693951")
                 //BigInteger.Parse("618970019642690137449562111")
             };
 
-            Console.WriteLine(mersennePrimes[0]);
-            //tbText.Text = mersennePrimes[0].ToString();
-
-            //tbText.Text = "10 số nguyên tố lớn nhất dưới 10 số nguyên tố Mersenne đầu tiên: ";
+            tbText.Text = "8 số nguyên tố lớn nhất dưới 8 số nguyên tố Mersenne đầu tiên: ";
 
             // Kiểm tra tất cả các số nhỏ hơn từng số Mersenne và thêm vào danh sách nếu là số nguyên tố
             foreach (var mersennePrime in mersennePrimes)
@@ -195,16 +235,101 @@ namespace Lab3
                 {
                     if (IsPrime(i))
                     {
-                        tbText.Text += i.ToString() + " ";
+                        tbText.Text += i.ToString() + ", ";
                         break;
                     }
                 }
             }
         }
 
-        private void tbText_TextChanged(object sender, EventArgs e)
+        private void btn1_3_Click(object sender, EventArgs e)
         {
+            if (BigInteger.TryParse(tbInput.Text, out BigInteger n))
+            {
+                if (IsPrime(n))
+                    tbText.Text = n.ToString() + " là số nguyên tố";
+                else
+                    tbText.Text = n.ToString() + " không phải số nguyên tố";
+            }
+            else
+            {
+                tbText.Text = null;
+                MessageBox.Show("Nhập vào INPUT một số nguyên!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
 
+        private void btn2_Click(object sender, EventArgs e)
+        {
+            // Gọi hàm để tách hai số
+            var numbers = ExtractTwoNumbers(tbInput.Text);
+
+            if (numbers != null)
+            {
+                tbText.Text = ("Ước chung của hai số "+ numbers[0].ToString() + ", " + numbers[1].ToString()+" là : "+ FindGCD(numbers[0], numbers[1]).ToString());
+            }
+            else
+            {
+                tbText.Text = null;
+                MessageBox.Show($"Nhập vào Input 2 số nguyên!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        static BigInteger ModularExponentiation(BigInteger a, BigInteger x, BigInteger p)
+        {
+            BigInteger result = 1;
+            a = a % p; // giảm a mod p
+
+            while (x > 0)
+            {
+                // Nếu x lẻ, nhân a với kết quả
+                if ((x & 1) == 1) // x % 2 == 1
+                {
+                    result = (result * a) % p;
+                }
+
+                // x /= 2
+                x >>= 1; // dịch phải 1 bit (tương đương x = x / 2)
+                a = (a * a) % p; // a = a^2 mod p
+            }
+            return result;
+        }
+
+        // Hàm tách ba số từ chuỗi đầu vào
+        static BigInteger[] ExtractThreeNumbers(string input)
+        {
+            // Thay thế các dấu phân cách (, ; hoặc dấu cách) bằng dấu cách
+            string cleanedInput = input.Replace(",", " ").Replace(";", " ");
+
+            // Tách chuỗi dựa trên dấu cách, loại bỏ các chuỗi rỗng
+            string[] parts = cleanedInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Kiểm tra nếu có đúng 3 phần tử và cả ba đều là số hợp lệ
+            if (parts.Length == 3 &&
+                BigInteger.TryParse(parts[0], out BigInteger num1) &&
+                BigInteger.TryParse(parts[1], out BigInteger num2) &&
+                BigInteger.TryParse(parts[2], out BigInteger num3))
+            {
+                return new[] { num1, num2, num3 };
+            }
+
+            // Nếu không hợp lệ, trả về null
+            return null;
+        }
+
+        private void btn3_Click(object sender, EventArgs e)
+        {
+            // Gọi hàm để tách ba số
+            var numbers = ExtractThreeNumbers(tbInput.Text);
+
+            if (numbers != null)
+            {
+                tbText.Text = ("Tính lũy thừa modular "+ numbers[0].ToString() + "^" + numbers[1].ToString()+" mod "+ numbers[2].ToString() + " bằng : "+ModularExponentiation(numbers[0], numbers[1], numbers[2]).ToString());
+            }
+            else
+            {
+                tbText.Text = null;
+                MessageBox.Show($"Nhập vào Input 2 số nguyên!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }
